@@ -7,5 +7,4 @@ import java.math.BigDecimal;
 public class ProductDTO {
     private Long id;
     private BigDecimal price;
-    private OrderDTO order;
 }
