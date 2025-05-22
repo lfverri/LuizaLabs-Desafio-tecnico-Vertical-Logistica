@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,13 +45,19 @@ public class OrderQueryController {
             @Parameter(description = "Data fim do período (yyyy-MM-dd)")
             @RequestParam(required = false) LocalDate dataFim) {
 
-        List<UserDTO> result = queryService.consultarPedidos(
-                Optional.ofNullable(orderId),
-                Optional.ofNullable(dataInicio),
-                Optional.ofNullable(dataFim)
-        );
-
-        return ResponseEntity.ok(result);
+        if (dataInicio != null && dataFim != null && dataFim.isBefore(dataInicio)) {
+            return ResponseEntity.badRequest().body(Collections.emptyList());
+        }
+        try {
+            List<UserDTO> result = queryService.consultarPedidos(
+                    Optional.ofNullable(orderId),
+                    Optional.ofNullable(dataInicio),
+                    Optional.ofNullable(dataFim)
+            );
+            return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Collections.emptyList());
+        }
     }
 
     @GetMapping("/users")
@@ -58,6 +65,10 @@ public class OrderQueryController {
             summary = "Listar todos os usuários",
             description = "Retorna todos os usuários processados"
     )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Usuários retornados com sucesso"),
+            @ApiResponse(responseCode = "500", description = "Erro interno ao buscar usuários")
+    })
     public ResponseEntity<List<UserDTO>> listarUsuarios() {
         List<UserDTO> users = queryService.buscarTodosUsuarios();
         return ResponseEntity.ok(users);
@@ -68,8 +79,13 @@ public class OrderQueryController {
             summary = "Limpar dados",
             description = "Remove todos os dados processados da memória"
     )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Dados removidos com sucesso"),
+            @ApiResponse(responseCode = "500", description = "Erro interno ao limpar dados")
+    })
     public ResponseEntity<Void> limparDados() {
         queryService.limparDados();
         return ResponseEntity.noContent().build();
     }
+
 }
