@@ -70,7 +70,7 @@ public class FileUploadController {
         }
 
         FileProcessingResultDTO result = processingService.processFile(file);
-        queryService.salvarPedidos(result.getUsers()); // salva apenas os válidos
+        queryService.salvarPedidos(result.getUsers()); // salvar apenas os válidos
         return ResponseEntity.ok(result);
     }
 }

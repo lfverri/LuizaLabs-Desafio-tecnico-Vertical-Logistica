@@ -78,7 +78,6 @@ public class OrderQueryService {
             comparator = comparator.reversed();
         }
 
-        // Aplica a ordenação e retorna a lista
         return pedidosProcessados.stream()
                 .sorted(comparator)
                 .toList();
