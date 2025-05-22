@@ -30,8 +30,6 @@ Os dados dos pedidos são armazenados **em memória** durante a execução da ap
 - Facilitar os testes automatizados, garantindo rapidez e isolamento.  
 - Evitar dependências externas, como banco de dados, para simplificar a execução local e durante o desenvolvimento.  
 
-Para uso em produção, o armazenamento em banco pode ser implementado conforme necessidade.
-
 ---
 
 ## ⚙️ Como Rodar o Projeto Localmente
@@ -74,24 +72,30 @@ Para rodar o projeto em sua máquina local, siga os passos abaixo:
 
 Se preferir utilizar Docker, siga estas instruções:
 
-1.  **Para construir a imagem Docker:**
+1. **Para construir a imagem Docker:**
 
     ```bash
     docker build -t luizalabs-logistics .
     ```
 
-2.  **Para rodar o container:**
+2. **Para rodar o container:**
 
-    ```bash
-    docker run -p 8080:8080 --rm --name logistics-app luizalabs-logistics
-    ```
+    Você tem duas opções:
 
-3.  **Teste a API pelo navegador ou Swagger em:**
+    - **Usando `docker run`:**
+
+        ```bash
+        docker run -p 8080:8080 --rm --name logistics-app luizalabs-logistics
+        ```
+
+    - **Usando `docker-compose`:**
+
+        ```bash
+        docker-compose up --build
+        ```
+
+3. **Teste a API pelo navegador ou Swagger em:**
 
     ```
     http://localhost:8080/swagger-ui/index.html#/
     ```
-
-   
-   
-   
