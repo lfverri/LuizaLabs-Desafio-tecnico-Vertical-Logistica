@@ -99,3 +99,9 @@ Se preferir utilizar Docker, siga estas instruções:
     ```
     http://localhost:8080/swagger-ui/index.html#/
     ```
+
+## 📄 Observações
+
+- O arquivo `txt_erros.txt` foi utilizado durante os testes da aplicação para simular casos de erro e validar o comportamento do parser.  
+- Esse arquivo está incluído no repositório e pode ser acessado livremente para fins de teste e demonstração.
+    
