@@ -28,7 +28,7 @@ class FileProcessingServiceTest {
         );
 
         // Act
-        List<UserDTO> resultado = service.processFile(file);
+        List<UserDTO> resultado = (List<UserDTO>) service.processFile(file);
 
         // Assert
         assertEquals(1, resultado.size());
@@ -52,7 +52,7 @@ class FileProcessingServiceTest {
                 "file", "dados.txt", "text/plain", conteudo.getBytes()
         );
 
-        List<UserDTO> resultado = service.processFile(file);
+        List<UserDTO> resultado = (List<UserDTO>) service.processFile(file);
 
         assertEquals(1, resultado.size());
         assertEquals("Maria", resultado.get(0).getName());

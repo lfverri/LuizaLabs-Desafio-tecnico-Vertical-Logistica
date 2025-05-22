@@ -1,5 +1,6 @@
 package com.luizalabs.desafio_tecnico.controller;
 
+import com.luizalabs.desafio_tecnico.dto.FileProcessingResultDTO;
 import com.luizalabs.desafio_tecnico.dto.UserDTO;
 import com.luizalabs.desafio_tecnico.service.FileProcessingService;
 import com.luizalabs.desafio_tecnico.service.OrderQueryService;
@@ -49,7 +50,7 @@ class FileUploadControllerTest {
         userDTO.setName("Maria");
         List<UserDTO> result = Collections.singletonList(userDTO);
 
-        when(processingService.processFile(any(MockMultipartFile.class))).thenReturn(result);
+        when(processingService.processFile(any(MockMultipartFile.class))).thenReturn((FileProcessingResultDTO) result);
         doNothing().when(queryService).salvarPedidos(anyList());
 
         // Act & Assert

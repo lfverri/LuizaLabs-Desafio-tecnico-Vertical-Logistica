@@ -5,10 +5,7 @@ import com.luizalabs.desafio_tecnico.dto.UserDTO;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -62,5 +59,28 @@ public class OrderQueryService {
 
     public void limparDados() {
         pedidosProcessados.clear();
+    }
+
+    public List<UserDTO> buscarUsuariosOrdenados(String orderBy, String direction) {
+        Comparator<UserDTO> comparator;
+
+        switch (orderBy.toLowerCase()) {
+            case "name":
+                comparator = Comparator.comparing(UserDTO::getName);
+                break;
+            case "id":
+            default:
+                comparator = Comparator.comparing(UserDTO::getId);
+                break;
+        }
+
+        if ("desc".equalsIgnoreCase(direction)) {
+            comparator = comparator.reversed();
+        }
+
+        // Aplica a ordenação e retorna a lista
+        return pedidosProcessados.stream()
+                .sorted(comparator)
+                .toList();
     }
 }

@@ -1,5 +1,6 @@
 package com.luizalabs.desafio_tecnico.service;
 
+import com.luizalabs.desafio_tecnico.dto.FileProcessingResultDTO;
 import com.luizalabs.desafio_tecnico.dto.OrderDTO;
 import com.luizalabs.desafio_tecnico.dto.UserDTO;
 import com.luizalabs.desafio_tecnico.dto.ProductDTO;
@@ -19,14 +20,19 @@ import java.util.UUID;
 @Service
 public class FileProcessingService {
 
-    public List<UserDTO> processFile(MultipartFile file) throws IOException {
+    public FileProcessingResultDTO processFile(MultipartFile file) throws IOException {
         Map<Long, UserDTO> userMap = new LinkedHashMap<>();
+        List<String> errors = new ArrayList<>();
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
             String line;
+            int lineNumber = 1;
+
             while ((line = reader.readLine()) != null) {
                 if (line.length() < 95) {
-                    continue;
+                    errors.add("Linha " + lineNumber + ": Linha muito curta para ser processada.");
+                    lineNumber++;
+                  continue;
                 }
 
                 try {
@@ -41,7 +47,6 @@ public class FileProcessingService {
                             dateRaw.substring(4, 6) + "-" +
                             dateRaw.substring(6);
 
-                    // Agrupamento de usuários
                     UserDTO user = userMap.computeIfAbsent(userId, id -> {
                         UserDTO u = new UserDTO();
                         u.setId(id);
@@ -50,7 +55,6 @@ public class FileProcessingService {
                         return u;
                     });
 
-                    // Busca ou cria pedido
                     OrderDTO order = user.getOrders().stream()
                             .filter(o -> o.getId().equals(orderId))
                             .findFirst()
@@ -64,21 +68,23 @@ public class FileProcessingService {
                                 return o;
                             });
 
-                    // Adiciona produto
                     ProductDTO product = new ProductDTO();
                     product.setId(productId);
                     product.setPrice(value);
-                  //  product.setOrder(order);
                     order.getProducts().add(product);
 
                 } catch (NumberFormatException | StringIndexOutOfBoundsException e) {
-                    System.err.println("Erro ao processar linha: " + line + " - " + e.getMessage());
-                    continue;
+                    errors.add("Linha " + lineNumber + ": Erro ao processar. " + e.getClass().getSimpleName() + " - " + e.getMessage());
                 }
+
+                lineNumber++;
             }
         }
 
-        return new ArrayList<>(userMap.values());
+        FileProcessingResultDTO result = new FileProcessingResultDTO();
+        result.setUsers(new ArrayList<>(userMap.values()));
+        result.setErrors(errors);
 
+        return result;
     }
 }

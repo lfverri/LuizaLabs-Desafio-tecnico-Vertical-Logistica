@@ -69,10 +69,16 @@ public class OrderQueryController {
             @ApiResponse(responseCode = "200", description = "Usuários retornados com sucesso"),
             @ApiResponse(responseCode = "500", description = "Erro interno ao buscar usuários")
     })
-    public ResponseEntity<List<UserDTO>> listarUsuarios() {
-        List<UserDTO> users = queryService.buscarTodosUsuarios();
+    public ResponseEntity<List<UserDTO>> listarUsuarios(
+            @Parameter(description = "Campo para ordenação: 'id' ou 'name'", example = "id")
+            @RequestParam(name = "order-by", required = false, defaultValue = "id") String orderBy,
+            @Parameter(description = "Direção da ordenação: 'asc' ou 'desc'", example = "asc")
+            @RequestParam(name = "direction", required = false, defaultValue = "asc") String direction) {
+
+        List<UserDTO> users = queryService.buscarUsuariosOrdenados(orderBy, direction);
         return ResponseEntity.ok(users);
     }
+
 
     @DeleteMapping("/clear")
     @Operation(

@@ -1,6 +1,9 @@
 package com.luizalabs.desafio_tecnico.controller;
 
+import com.luizalabs.desafio_tecnico.dto.ApiErrorDTO;
+import com.luizalabs.desafio_tecnico.dto.FileProcessingResultDTO;
 import com.luizalabs.desafio_tecnico.dto.UserDTO;
+import com.luizalabs.desafio_tecnico.exceptions.InvalidFileFormatException;
 import com.luizalabs.desafio_tecnico.service.FileProcessingService;
 import com.luizalabs.desafio_tecnico.service.OrderQueryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
@@ -34,35 +38,39 @@ public class FileUploadController {
     }
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(
-            summary = "Upload e processamento de arquivo de pedidos",
-            description = "Faz upload de um arquivo de texto com dados de pedidos e retorna os dados processados agrupados por usuário"
-    )
+    @Operation(summary = "Upload de arquivo com dados de pedidos")
     @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Arquivo processado com sucesso",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = UserDTO.class)
-                    )
-            ),
-            @ApiResponse(responseCode = "400", description = "Arquivo inválido"),
-            @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+            @ApiResponse(responseCode = "200", description = "Arquivo processado com sucesso",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = UserDTO.class))),
+            @ApiResponse(responseCode = "400", description = "Arquivo inválido ou parâmetros incorretos",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorDTO.class))),
+            @ApiResponse(responseCode = "413", description = "Arquivo muito grande",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorDTO.class))),
+            @ApiResponse(responseCode = "422", description = "Erro ao processar conteúdo do arquivo",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorDTO.class))),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorDTO.class)))
     })
-    public ResponseEntity<List<UserDTO>> handleUpload(
+    public ResponseEntity<FileProcessingResultDTO> handleUpload(
             @Parameter(description = "Arquivo de texto com dados de pedidos", required = true)
-            @RequestParam("file") MultipartFile file) {
-        try {
-            List<UserDTO> result = processingService.processFile(file);
-            queryService.salvarPedidos(result);
-            return ResponseEntity.ok(result);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Collections.emptyList());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Collections.emptyList());
+            @RequestParam("file") MultipartFile file) throws IOException {
+
+        if (file.isEmpty()) {
+            throw new InvalidFileFormatException("Arquivo não pode estar vazio");
         }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.equals("text/plain")) {
+            throw new InvalidFileFormatException("Tipo de arquivo não suportado. Apenas arquivos de texto são aceitos.");
+        }
+
+        FileProcessingResultDTO result = processingService.processFile(file);
+        queryService.salvarPedidos(result.getUsers()); // salva apenas os válidos
+        return ResponseEntity.ok(result);
     }
 }
