@@ -1,7 +1,39 @@
 version: '3.8'
+
 services:
+  db:
+    image: postgres:16
+    container_name: postgres_desafio
+    restart: always
+    environment:
+      POSTGRES_DB: desafio
+      POSTGRES_USER: desafio_user
+      POSTGRES_PASSWORD: desafio_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U desafio_user -d desafio"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   app:
     build: .
+    container_name: desafio-tecnico
     ports:
       - "8080:8080"
-    container_name: desafio-tecnico
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: hml
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/desafio
+      SPRING_DATASOURCE_USERNAME: desafio_user
+      SPRING_DATASOURCE_PASSWORD: desafio_pass
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"
+
+volumes:
+  postgres_data:
